@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[4,)"
+license="MIT"
+
+[[mods]]
+modId="damagephysics"
+version="0.6.2"
+displayName="DamagePhysics"
+logoFile="icon.png"
+authors="TheKryzzz_"
+description='''Client-side damage numbers with realistic 2D physics simulation, gravity, drag, collisions, and customizable visuals.'''
+
+[[dependencies.damagephysics]]
+modId="neoforge"
+type="required"
+versionRange="[21.1.176,)"
+ordering="NONE"
+side="CLIENT"
+
+[[dependencies.damagephysics]]
+modId="minecraft"
+type="required"
+versionRange="[1.21.1,1.22)"
+ordering="NONE"
+side="CLIENT"

@@ -1,0 +1,36 @@
+// 编译工程：只为「DamagePhysics 改版」编译我们改动过的两个类。
+// 其余类（DamageNumberBody / Renderer / Physics…）直接引用原始 jar，不重编译，
+// 保证行为与上游一致；产物只更新原 jar 里的这两个 .class。
+plugins {
+    id 'java'
+    // 与 voxy 构建同一套：MDG 2.0.148 + disableRecompilation，跳过反编译只出编译用 MC jar
+    id 'net.neoforged.moddev' version '2.0.148'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+}
+
+neoForge {
+    enable {
+        version = '21.1.217'
+        disableRecompilation = true
+    }
+}
+
+// 原始 mod jar 作为编译依赖（提供未改动的类）
+dependencies {
+    compileOnly files('libs/original.jar')
+}
+
+// 只编译我们改的两个类，其它源码目录不放东西
+sourceSets {
+    main {
+        java.srcDirs = ['src']
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs << '-proc:none'
+}

@@ -302,7 +302,7 @@ public class DamagePhysicsConfig {
          .comment("Spells: fill color follows the held item's rarity color (common=white, rare=blue, epic=purple, legendary=gold).")
          .define("spellUseRarityColor", true);
       COLOR_RARITY_COMMON = BUILDER.comment("Spell fill color for COMMON rarity.").define("rarityColorCommon", "#FFFFFF");
-      COLOR_RARITY_UNCOMMON = BUILDER.comment("Spell fill color for UNCOMMON rarity.").define("rarityColorUncommon", "#55FF55");
+      COLOR_RARITY_UNCOMMON = BUILDER.comment("Spell fill color for UNCOMMON rarity.").define("rarityColorUncommon", "#FFFF55");
       COLOR_RARITY_RARE = BUILDER.comment("Spell fill color for RARE rarity.").define("rarityColorRare", "#55FFFF");
       COLOR_RARITY_EPIC = BUILDER.comment("Spell fill color for EPIC rarity.").define("rarityColorEpic", "#FF55FF");
       COLOR_RARITY_OTHER = BUILDER

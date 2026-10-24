@@ -1,0 +1,9 @@
+// 插件仓库：net.neoforged.moddev 的 plugin marker 在 Gradle Plugin Portal 上就有
+// （已核对 plugins.gradle.org/m2/net/neoforged/moddev/.../2.0.148），不需要额外 maven。
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+    }
+}
+
+rootProject.name = 'damagenum-fork'

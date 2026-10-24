@@ -144,11 +144,21 @@ public class DamageEventListener {
    /** 本类自己的日志器（不依赖 DamagePhysicsMod 的私有 LOGGER）。 */
    private static final org.slf4j.Logger LOGGER = com.mojang.logging.LogUtils.getLogger();
 
-   /** 本次命中的 DamageType id（形如 "minecraft:poison"），自动判定用。 */
-   private String pendingTypeId = null;
-   /** 本次伤害是否有攻击者 / 直接来源（DoT 通常两者皆无）。 */
-   private boolean pendingHasAttacker = true;
-   private boolean pendingHasDirectEntity = true;
+   /**
+    * 一次伤害的证据（按受伤者保存，避免连击/多目标时互相覆盖）。
+    * 服务端线程写入、客户端线程读取，同一进程（单人/整合服务器）内有效。
+    */
+   private record DamageProbe(String typeId, boolean hasAttacker, boolean hasDirectEntity) {
+   }
+
+   /** 本次生成数字所用的 typeId（由 classifyFamily 从证据里取出）。 */
+   private String currentTypeId = null;
+
+   /** 受伤者 → 最近一次伤害的证据。 */
+   private final Map<LivingEntity, DamageProbe> probes = new WeakHashMap<>();
+
+   /** 最近一次写入的 typeId，仅用于调试日志（分类不依赖它）。 */
+   private String lastProbeTypeId = null;
 
    /** 本次命中的伤害类型（供同一刀的后续判断复用：减益类要固定样式）。 */
    private DamageCategory lastCategory = null;
@@ -208,23 +218,24 @@ public class DamageEventListener {
     */
    private DamageFamily classifyFamily(LivingEntity entity) {
       // 清掉上一次的分类残留：减益跳字绝不能“沿用”上一刀的数字样式
-      this.pendingCategory.clear();
+      DamageProbe probe = entity == null ? null : this.probes.get(entity);
+      this.currentTypeId = probe == null ? null : probe.typeId();
       this.lastCategory = DamageCategory.PHYSICAL;
       // ① DamageType 自动判定（整合服务器有效）
       if ((Boolean)DamagePhysicsConfig.DEBUG_CLASSIFICATION.get()) {
          LOGGER.info(
             "[damagephysics-fork] typeId={} attacker={} direct={} victim={}",
-            this.pendingTypeId, this.pendingHasAttacker, this.pendingHasDirectEntity,
+            this.currentTypeId, probe != null && probe.hasAttacker(), probe != null && probe.hasDirectEntity(),
             entity == null ? "null" : entity.getType().toString());
       }
-      if (this.looksLikeDebuff()) {
+      if (this.looksLikeDebuff(entity)) {
          if ((Boolean)DamagePhysicsConfig.DEBUG_CLASSIFICATION.get()) {
             LOGGER.info("[damagephysics-fork] -> DEBUFF");
          }
          return DamageFamily.DEBUFF;
       }
       // ①-b 法术：DamageType id 命中法术关键字，或来自 irons_spellbooks
-      if (this.looksLikeSpellType()) {
+      if (this.looksLikeSpellType(entity)) {
          this.lastCategory = DamageCategory.MAGIC;
          return DamageFamily.SPELL;
       }
@@ -262,8 +273,10 @@ public class DamageEventListener {
    }
 
    /** DamageType id 含法术关键字即视为法术（铁魔法等模组的伤害类型都带 spell/magic/arcane）。 */
-   private boolean looksLikeSpellType() {
-      String typeId = this.pendingTypeId == null ? "" : this.pendingTypeId.toLowerCase(java.util.Locale.ROOT);
+   private boolean looksLikeSpellType(LivingEntity entity) {
+      DamageProbe probe = entity == null ? null : this.probes.get(entity);
+      String typeId = probe == null || probe.typeId() == null
+         ? "" : probe.typeId().toLowerCase(java.util.Locale.ROOT);
       var keywords = (java.util.List<? extends String>)DamagePhysicsConfig.SPELL_TYPE_KEYWORDS.get();
       for (String keyword : keywords) {
          if (!keyword.isEmpty() && typeId.contains(keyword.toLowerCase(java.util.Locale.ROOT))) {
@@ -280,19 +293,22 @@ public class DamageEventListener {
     *   <li>没有攻击者也没有直接来源，且 id 不在 {@code debuffEnvironmentIds} 里。</li>
     * </ol>
     */
-   private boolean looksLikeDebuff() {
+   private boolean looksLikeDebuff(LivingEntity entity) {
       if (!(Boolean)DamagePhysicsConfig.DEBUFF_AUTO_DETECT.get()) {
          return false;
       }
-      String typeId = this.pendingTypeId == null ? "" : this.pendingTypeId.toLowerCase(java.util.Locale.ROOT);
+      DamageProbe probe = entity == null ? null : this.probes.get(entity);
+      String typeId = probe == null || probe.typeId() == null
+         ? "" : probe.typeId().toLowerCase(java.util.Locale.ROOT);
       var keywords = (java.util.List<? extends String>)DamagePhysicsConfig.DEBUFF_TYPE_KEYWORDS.get();
       for (String keyword : keywords) {
          if (!keyword.isEmpty() && typeId.contains(keyword.toLowerCase(java.util.Locale.ROOT))) {
             return true;
          }
       }
-      if (!(Boolean)DamagePhysicsConfig.DEBUFF_REQUIRE_NO_ATTACKER.get()
-         || this.pendingHasAttacker || this.pendingHasDirectEntity) {
+      if (probe == null
+         || !(Boolean)DamagePhysicsConfig.DEBUFF_REQUIRE_NO_ATTACKER.get()
+         || probe.hasAttacker() || probe.hasDirectEntity()) {
          return false;
       }
       var envIds = (java.util.List<? extends String>)DamagePhysicsConfig.DEBUFF_ENVIRONMENT_IDS.get();
@@ -310,7 +326,11 @@ public class DamageEventListener {
       if (player == null) {
          return null;
       }
+      // 主手 → 副手：铁魔法常把法术书拿在副手或靠快捷键施放
       var held = player.getMainHandItem();
+      if (held.isEmpty()) {
+         held = player.getOffhandItem();
+      }
       if (held.isEmpty()) {
          return null;
       }
@@ -340,9 +360,10 @@ public class DamageEventListener {
       }
       var source = event.getSource();
       var typeKey = source.typeHolder().unwrapKey();
-      this.pendingTypeId = typeKey.map(k -> k.location().toString()).orElse(source.getMsgId());
-      this.pendingHasAttacker = source.getEntity() != null;
-      this.pendingHasDirectEntity = source.getDirectEntity() != null;
+      String typeId = typeKey.map(k -> k.location().toString()).orElse(source.getMsgId());
+      this.lastProbeTypeId = typeId;
+      this.probes.put(victim, new DamageProbe(
+         typeId, source.getEntity() != null, source.getDirectEntity() != null));
       DamageCategory category = DamageCategory.fromMsgId(source.getMsgId());
       Entity attacker = event.getSource().getEntity();
       if (attacker instanceof LocalPlayer player && player.getMainHandItem().isEnchanted()) {
@@ -425,7 +446,7 @@ public class DamageEventListener {
                   case DEBUFF -> {
                      useImpact = (Boolean)DamagePhysicsConfig.FAMILY_DEBUFF_USES_IMPACT.get();
                      // 减益：固定底色（默认纯白），默认不描边，完全独立于之前的显示样式
-                     color = ForkStyle.colorForTypeId(this.pendingTypeId);
+                     color = ForkStyle.colorForTypeId(this.currentTypeId);
                      if (color == 0) {
                         color = ForkStyle.parseHexOrDefault((String)DamagePhysicsConfig.DEBUFF_FALLBACK_COLOR.get(), 0xFFFFFFFF);
                      }
@@ -435,11 +456,24 @@ public class DamageEventListener {
                   }
                   case SPELL -> {
                      useImpact = (Boolean)DamagePhysicsConfig.FAMILY_SPELL_USES_IMPACT.get();
-                     color = (Boolean)DamagePhysicsConfig.FAMILY_SPELL_USES_TYPE_COLOR.get()
-                        ? ForkStyle.parseHexOrDefault(ForkStyle.hexFor(category), 0xFFFFFFFF)
-                        : this.resolveImpactColor(impactRatio);
+                     // 三层取色：① 手持(主手→副手)法术物品稀有度色 ② DamageType 类型色表 ③ 法术兜底色
+                     Integer rarityColor = (Boolean)DamagePhysicsConfig.SPELL_USE_RARITY_COLOR.get()
+                        ? this.heldRarityColor()
+                        : null;
+                     int typeFill = ForkStyle.colorForTypeId(this.currentTypeId);
+                     if (rarityColor != null) {
+                        color = rarityColor;
+                     } else if (typeFill != 0) {
+                        color = typeFill;
+                     } else if ((Boolean)DamagePhysicsConfig.FAMILY_SPELL_USES_TYPE_COLOR.get()) {
+                        color = ForkStyle.parseHexOrDefault(ForkStyle.hexFor(category), 0xFFFFFFFF);
+                     } else {
+                        // 法术始终固定色，绝不回退到“按冲击变色”（用户要求：法术不随伤害变色）
+                        color = ForkStyle.parseHexOrDefault(ForkStyle.hexFor(DamageCategory.MAGIC), 0xFFB388FF);
+                     }
+                     // 描边统一浅紫（与附魔深紫区分）
                      typeColor = (Boolean)DamagePhysicsConfig.FAMILY_SPELL_OUTLINE.get()
-                        ? ForkStyle.parseHexOrDefault(ForkStyle.outlineHexFor(category), 0)
+                        ? ForkStyle.parseHexOrDefault((String)DamagePhysicsConfig.SPELL_OUTLINE_COLOR.get(), 0)
                         : 0;
                   }
                   case PROJECTILE -> {
