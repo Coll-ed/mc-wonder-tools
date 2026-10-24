@@ -1,0 +1,12 @@
+{
+  "required": false,
+  "minVersion": "0.8",
+  "compatibilityLevel": "JAVA_17",
+  "package": "compatpatch.mixin.scguns",
+  "mixins": [
+    "ThrowableItemEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

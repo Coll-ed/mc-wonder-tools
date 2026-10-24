@@ -1,0 +1,37 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "经验复制"
+authors = "流雨恋色"
+description = '''
+经验复制 — 在铁砧中使用附魔之瓶复制工具/武器，仅保留附魔，消耗经验逐步恢复耐久。
+
+合成：玻璃瓶 + 青金石 = 附魔之瓶（任意合成栏）
+
+复制消耗：1 个附魔之瓶（基底）+ 所有附魔词条等级总和 个附魔之瓶
+示例：锋利 I + 击退 II 的木剑需要 1 + 1 + 2 = 4 个附魔之瓶
+强化耐久：每次强化需要 附魔总等级 个附魔之瓶，共 5 次（20%→100%）
+
+Experience Copy — Duplicate tools via anvil using Experience Bottles.
+Only enchantments are preserved; all other modifiers are stripped.
+Bottles needed = 1 (base) + sum of enchantment levels.
+Durability upgrade: sum of enchantment levels bottles per step × 5 steps.
+'''
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"

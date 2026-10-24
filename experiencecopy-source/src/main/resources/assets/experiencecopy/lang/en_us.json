@@ -1,0 +1,8 @@
+{
+  "tooltip.experiencecopy.copy_tag": "[Experience Copy]",
+  "tooltip.experiencecopy.original_max": "Original max durability: %s",
+  "tooltip.experiencecopy.progress": "Copy progress: %s/5",
+  "tooltip.experiencecopy.current_max": "Current max durability: %s / %s",
+  "tooltip.experiencecopy.bottles_needed": "Bottles needed for next upgrade: %s",
+  "tooltip.experiencecopy.no_enchant": "Cannot be enchanted"
+}

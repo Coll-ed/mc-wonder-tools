@@ -1,0 +1,31 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "迅捷打击"
+authors = "流雨恋色"
+description = '''
+迅捷打击 — 攻击时根据玩家当前移动速度造成额外伤害。速度越快伤害越高。
+公式：附加伤害 = 当前速度值 × 附魔等级 × 8.0
+疾跑约 5 点，骑马或迅捷药水效果显著。支持近战、弓箭、三叉戟等所有伤害形式。
+
+Swift Strike — Bonus damage scales with your movement speed.
+Formula: bonus = current speed × level × 8.0. Sprint ≈ 5, horses and speed potions boost it further.
+'''
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"

@@ -1,0 +1,4 @@
+{
+  "enchantment.vitalslayer.percent_slayer": "百分比杀伤",
+  "enchantment.vitalslayer.percent_slayer.desc": "攻击时额外造成目标最大生命值 2% × 等级的伤害（1级2%、5级10%）。每击必触发。"
+}

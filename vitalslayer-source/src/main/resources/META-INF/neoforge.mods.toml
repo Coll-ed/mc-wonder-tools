@@ -1,0 +1,34 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "百分比杀伤"
+authors = "流雨恋色"
+description = '''
+百分比杀伤 — 新增「百分比杀伤」附魔，攻击时额外造成目标最大生命值 2% × 附魔等级的伤害。
+
+公式：附加伤害 = 等级 × 目标最大生命值 × 2%
+
+- 每击必触发：1级 2%，5级 10%
+- 不限制武器类型，任意物品均可附魔；获取方式：附魔台、图书管理员交易、铁砧
+
+Percentage Slayer — Attacks deal bonus damage equal to 2% × level of the target's max health.
+Triggers on every hit: 2% at I, 10% at V. Max level V. Works on any item.
+'''
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"

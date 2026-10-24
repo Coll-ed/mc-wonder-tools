@@ -1,0 +1,130 @@
+/**
+ * Gradle Init Script: Dependency Lister
+ *
+ * Hooks into dependency resolution for ALL projects and writes every resolved
+ * artifact's download URL + local cache path to "deps-to-download.txt".
+ *
+ * Usage:
+ *   gradlew build -I gradle/init.d/list-deps.gradle
+ *   (The build may fail partway — the list is still written.)
+ *
+ * Then use scripts/download-deps.bat (Windows) or scripts/download-deps.sh
+ * to download every file into the Gradle cache.
+ */
+
+import org.gradle.api.artifacts.result.ResolvedArtifactResult
+
+def outputFile = new File(gradle.gradleUserHomeDir, '..')
+outputFile = new File(outputFile, 'deps-to-download.txt')
+
+// Resolve to absolute path early
+outputFile = outputFile.absoluteFile
+
+def collected = new LinkedHashSet<String>()
+
+gradle.rootProject { root ->
+    root.logger.lifecycle("[list-deps] Output: {}", outputFile.absolutePath)
+}
+
+// ── Phase 1: capture resolved artifacts from every resolvable configuration ──
+gradle.allprojects { project ->
+    project.plugins.withId('java-base') {
+        project.afterEvaluate {
+            project.configurations.findAll { it.canBeResolved }.each { config ->
+                // Use lenient resolution so failures don't stop collection
+                try {
+                    def lenient = config.incoming.resolutionResult.root
+                    // We walk the resolved dependency graph
+                    config.incoming.afterResolve {
+                        try {
+                            config.resolvedConfiguration.lenientConfiguration
+                                .getFiles(org.gradle.api.specs.Specs.SATISFIES_ALL)
+                                .each { file ->
+                                    if (file.exists() && file.name.endsWith('.jar')) {
+                                        collected.add(file.absolutePath)
+                                    }
+                                }
+                        } catch (Exception ignored) {
+                            // some configurations may not resolve — skip
+                        }
+                    }
+                } catch (Exception ignored) {
+                    // lenient resolution fallback
+                }
+            }
+        }
+    }
+}
+
+// ── Phase 2: write the list at the end (even if build fails) ──
+gradle.buildFinished { result ->
+    if (collected.isEmpty()) {
+        // Fallback: list any jars already in the module cache
+        def cacheDir = new File(gradle.gradleUserHomeDir, "caches/modules-2/files-2.1")
+        if (cacheDir.exists()) {
+            cacheDir.eachFileRecurse { f ->
+                if (f.name.endsWith('.jar') || f.name.endsWith('.pom') || f.name.endsWith('.zip')) {
+                    collected.add(f.absolutePath)
+                }
+            }
+        }
+    }
+
+    def lines = []
+    lines.add("# EquipmentFusion dependency list")
+    lines.add("# Generated: ${new Date()}")
+    lines.add("# Format: URL<TAB>local-cache-path")
+    lines.add("#")
+    lines.add("# ── Download commands ──")
+    lines.add("# For each line below, take the URL and download it to the local-cache-path.")
+    lines.add("# The scripts/download-deps.bat (Windows) or scripts/download-deps.sh (Linux/macOS)")
+    lines.add("# will do this automatically.")
+    lines.add("")
+
+    // Map cache files back to Maven URLs where possible
+    // Pattern: ~/.gradle/caches/modules-2/files-2.1/{group}/{artifact}/{version}/{hash}/{file}
+    collected.each { path ->
+        def f = new File(path)
+        def uriParts = extractMavenCoords(f)
+        if (uriParts) {
+            lines.add("${uriParts[0]}\t${path}")
+        }
+    }
+
+    if (lines.size() <= 9) {
+        lines.add("")
+        lines.add("# No resolved artifacts captured yet.")
+        lines.add("# Run a full 'gradlew build' first — the list will be populated")
+        lines.add("# from already-cached modules as a fallback.")
+    }
+
+    outputFile.text = lines.join('\n')
+    println ""
+    println "═══════════════════════════════════════════════════════"
+    println "[list-deps] Wrote ${lines.size() - 9} entries to:"
+    println "  ${outputFile.absolutePath}"
+    println "═══════════════════════════════════════════════════════"
+    println ""
+}
+
+/**
+ * Try to extract Maven GAV + repo URL from a Gradle cache file path.
+ * Returns [url, null] on success or null if the path doesn't match.
+ */
+static List<String> extractMavenCoords(File file) {
+    // Path: .../modules-2/files-2.1/{group}/{artifact}/{version}/{hash}/{filename}
+    def parts = file.absolutePath.replace('\\', '/').split('/')
+    def idx = parts.findLastIndexOf { it == 'files-2.1' }
+    if (idx < 0 || idx + 4 >= parts.size()) return null
+
+    def filename = parts[-1]
+    def version = parts[-2]
+    def artifact = parts[-3]
+    def group = parts.drop(idx + 1).take(parts.size() - idx - 4).join('/')
+    def groupDotted = group.replace('/', '.')
+
+    // Try NeoForge Maven first
+    def url = "https://maven.neoforged.net/releases/${group}/${artifact}/${version}/${filename}"
+
+    return [url]
+}

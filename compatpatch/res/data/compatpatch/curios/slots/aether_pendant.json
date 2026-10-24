@@ -1,0 +1,7 @@
+{
+    "order":  103,
+    "icon":  "curios:slot/empty_necklace_slot",
+    "validators":  [
+                       "curios:tag"
+                   ]
+}

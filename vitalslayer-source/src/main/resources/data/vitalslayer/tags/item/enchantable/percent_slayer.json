@@ -1,0 +1,23 @@
+{
+  "values": [
+    "#minecraft:enchantable/sword",
+    "#minecraft:enchantable/mining",
+    "#minecraft:enchantable/mining_loot",
+    "#minecraft:enchantable/mace",
+    "#minecraft:enchantable/trident",
+    "#minecraft:enchantable/bow",
+    "#minecraft:enchantable/crossbow",
+    "#minecraft:enchantable/weapon",
+    "#minecraft:enchantable/sharp_weapon",
+    "#minecraft:enchantable/fire_aspect",
+    "#minecraft:enchantable/durability",
+    "#minecraft:enchantable/armor",
+    "#minecraft:enchantable/head_armor",
+    "#minecraft:enchantable/chest_armor",
+    "#minecraft:enchantable/leg_armor",
+    "#minecraft:enchantable/foot_armor",
+    "#minecraft:enchantable/equippable",
+    "#minecraft:enchantable/fishing",
+    "#minecraft:enchantable/vanishing"
+  ]
+}

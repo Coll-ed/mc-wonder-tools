@@ -1,0 +1,54 @@
+# ===== 非 MC 项目：各自独立仓库，不属本合集 =====
+ned/
+orca-character/
+drive-fairy/
+cecil-patcher/
+live2d-moc3/
+asset-triage/
+
+# ===== Gradle / Java =====
+.gradle/
+build/
+out/
+*.class
+
+# 只收源码：成品 jar 与依赖 jar 不入库（wrapper jar 例外，构建必需）
+*.jar
+!**/gradle/wrapper/gradle-wrapper.jar
+
+# ===== IDE =====
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# ===== Python =====
+__pycache__/
+*.pyc
+
+# ===== .NET / Godot（兜底；非 MC 项目已整体排除） =====
+bin/
+obj/
+dist/
+.godot/
+*.pck
+*.dll
+*.pdb
+*.deps.json
+_backup/
+
+# ===== 构建前置的第三方二进制（如有人在本目录建 _refs/） =====
+_refs/
+
+# ===== 系统 / 本地环境 =====
+Thumbs.db
+Desktop.ini
+.DS_Store
+local.properties
+*.local.toml
+hs_err_pid*.log
+replay_pid*.log

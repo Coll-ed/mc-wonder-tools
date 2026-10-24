@@ -1,0 +1,19 @@
+{
+  "description": {
+    "translate": "enchantment.swiftstrike.swift_strike"
+  },
+  "supported_items": "#swiftstrike:enchantable/swift_strike",
+  "weight": 2,
+  "max_level": 5,
+  "min_cost": {
+    "base": 10,
+    "per_level_above_first": 8
+  },
+  "max_cost": {
+    "base": 50,
+    "per_level_above_first": 8
+  },
+  "anvil_cost": 4,
+  "slots": ["mainhand"],
+  "effects": {}
+}

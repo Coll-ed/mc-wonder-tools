@@ -1,0 +1,36 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "生命力经验"
+authors = "流雨恋色"
+description = '''
+生命力经验 — 怪物经验掉落随其最大生命值动态调整，生命值越高的怪物击败后经验越多。
+
+公式：最终经验 = 基础经验 × (1 + 最大生命值 × 倍率系数)
+
+- 经验倍率完全可配置
+- 支持黑名单/白名单过滤特定生物
+- 可选仅玩家击杀时生效
+- 可设置倍率上限和最终经验上限
+
+Vital XP — Dynamically scales XP drops based on mob max health.
+Formula: finalXP = baseXP × (1 + maxHealth × multiplier). Fully configurable.
+'''
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"

@@ -1,0 +1,8 @@
+{
+  "tooltip.experiencecopy.copy_tag": "【经验复制】",
+  "tooltip.experiencecopy.original_max": "原耐久上限：%s",
+  "tooltip.experiencecopy.progress": "复制进度：%s/5",
+  "tooltip.experiencecopy.current_max": "当前耐久上限：%s / %s",
+  "tooltip.experiencecopy.bottles_needed": "下次强化需要附魔之瓶：%s 个",
+  "tooltip.experiencecopy.no_enchant": "不可附魔"
+}

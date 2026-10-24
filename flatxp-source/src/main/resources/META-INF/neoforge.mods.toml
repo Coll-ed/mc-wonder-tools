@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "${loader_version_range}"
+license = "${mod_license}"
+
+[[mods]]
+modId = "${mod_id}"
+version = "${mod_version}"
+displayName = "平坦经验"
+authors = "流雨恋色"
+description = '''
+平坦经验 — 所有等级升级所需经验固定为 7 点（等同于原版 0→1 级），不再递增。
+无论 1 级升 2 级还是 99 级升 100 级，每级都是 7 点经验，与原版生命经验等模组完美搭配。
+
+Flat XP — Every level costs exactly 7 XP points (same as vanilla 0→1).
+No exponential scaling. Pairs perfectly with Vital XP mod.
+'''
+
+[[dependencies.${mod_id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "${neo_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${minecraft_version_range}"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "flatxp.mixins.json"

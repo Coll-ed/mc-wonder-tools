@@ -1,0 +1,57 @@
+modLoader = "javafml"
+loaderVersion = "*"
+license = "MIT"
+issueTrackerURL = "https://github.com/local/compatpatch/issues"
+
+[[mods]]
+modId = "compatpatch"
+displayName = "Compat Patch"
+version = "1.0.0"
+authors = "shin"
+description = '''
+独立兼容补丁模组：不改任何原模组 jar，用 mixin 修掉日志里反复出现的报错与崩溃。
+每项修复都有独立开关（config/compatpatch.properties），关掉即退回原模组行为。
+'''
+
+[[mixins]]
+config="compatpatch.scguns.mixins.json"
+
+[[mixins]]
+config="compatpatch.jupiter.mixins.json"
+
+[[mixins]]
+config="compatpatch.iafspellbooks.mixins.json"
+
+[[mixins]]
+config="compatpatch.vss.mixins.json"
+
+[[mixins]]
+config="compatpatch.wakes.mixins.json"
+
+[[dependencies.compatpatch]]
+modId = "neoforge"
+mandatory = true
+type = "required"
+versionRange = "[21.1.21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.compatpatch]]
+modId = "minecraft"
+mandatory = true
+type = "required"
+versionRange = "[1.21.1]"
+ordering = "NONE"
+side = "BOTH"
+
+# ⑦ 用数据覆盖禁用 NeoEnchant 的 Magnet 附魔（见 res/data/enchantplus/...）。
+# ordering = "AFTER" 是**必需**的：数据包的优先级按模组加载顺序排，后加载的覆盖先加载的。
+# 不声明 AFTER 的话 mr_neoenchant 排在 compatpatch 之后，我们的覆盖文件会被它压过去、形同没写。
+# type = "optional" + mandatory = false：对方没装时本模组照常加载，只是这层覆盖没意义。
+[[dependencies.compatpatch]]
+modId = "mr_neoenchant"
+mandatory = false
+type = "optional"
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"

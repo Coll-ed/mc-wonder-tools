@@ -1,0 +1,4 @@
+{
+  "enchantment.vitalslayer.percent_slayer": "Percentage Slayer",
+  "enchantment.vitalslayer.percent_slayer.desc": "Deals bonus damage equal to 2% × level of the target's maximum health (2% at I, 10% at V). Triggers on every hit."
+}
